@@ -13,9 +13,13 @@
 #define kTSMessageExtraDisplayTimePerPixel 0.04
 #define kTSMessageAnimationDuration 0.3
 
+#define iOS7StuffEnabled __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
 
-
+#if iOS7StuffEnabled
+@interface TSMessage () <UIDynamicAnimatorDelegate>
+#else
 @interface TSMessage ()
+#endif
 
 /** The queued messages (TSMessageView objects) */
 @property (nonatomic, strong) NSMutableArray *messages;
@@ -237,14 +241,15 @@ __weak static UIViewController *_defaultViewController;
                          animations:animationBlock
                          completion:completionBlock];
     } else {
-        #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
-        [UIView animateWithDuration:kTSMessageAnimationDuration + 0.1
-                              delay:0
-             usingSpringWithDamping:0.8
-              initialSpringVelocity:0.f
-                            options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
-                         animations:animationBlock
-                         completion:completionBlock];
+        #if iOS7StuffEnabled
+        [self animateView:currentView toPosition:toPoint];
+//        [UIView animateWithDuration:kTSMessageAnimationDuration + 0.1
+//                              delay:0
+//             usingSpringWithDamping:0.8
+//              initialSpringVelocity:0.f
+//                            options:UIViewAnimationOptionCurveEaseInOut | UIViewAnimationOptionBeginFromCurrentState | UIViewAnimationOptionAllowUserInteraction
+//                         animations:animationBlock
+//                         completion:completionBlock];
         #endif
     }
     
@@ -368,4 +373,34 @@ __weak static UIViewController *_defaultViewController;
     return _useiOS7Style;
 }
 
+#if iOS7StuffEnabled
+
+#pragma mark - Dynamics support
+static UIDynamicAnimator *staticAnimator;
+- (void) animateView:(UIView*) view toPosition:(CGPoint)position {
+    UIDynamicAnimator *animator = [[UIDynamicAnimator alloc] initWithReferenceView:view.superview];
+    animator.delegate = self;
+    UICollisionBehavior *collision = [[UICollisionBehavior alloc] initWithItems:@[view]];
+    CGRect rect = view.frame;
+    CGPoint currentCenter = CGPointMake(CGRectGetMidX(rect), CGRectGetMidY(rect));
+    rect = CGRectOffset(rect, position.x-currentCenter.x, position.y-currentCenter.y);
+    CGFloat boundaryY = CGRectGetMaxY(rect);
+    CGPoint fromPoint = CGPointMake(CGRectGetMinX(rect), boundaryY);
+    CGPoint toPoint = CGPointMake(CGRectGetMaxX(rect), boundaryY);
+    [collision addBoundaryWithIdentifier:@"asd" fromPoint:fromPoint toPoint:toPoint];
+    [animator addBehavior:collision];
+    UIGravityBehavior *gravity = [[UIGravityBehavior alloc] initWithItems:@[view]];
+    [animator addBehavior:gravity];
+    staticAnimator = animator;
+}
+
+- (void)dynamicAnimatorDidPause:(UIDynamicAnimator *)animator {
+    [animator removeAllBehaviors];
+    staticAnimator = nil;
+    if (self.messages.count) {
+        TSMessageView *messageView = [self.messages objectAtIndex:0];
+        messageView.messageIsFullyDisplayed = YES;
+    }
+}
+#endif
 @end
