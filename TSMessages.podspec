@@ -8,13 +8,13 @@ The notification moves from the top of the screen underneath the navigation bar 
 There are 4 different types already set up for you: Success, Error, Warning, Message.
                    DESC
   
-  s.homepage     = "https://github.com/toursprung/TSMessages/"
+  s.homepage     = "https://github.com/apploft/TSMessages"
 
   s.license      = 'MIT'
 
-  s.author       = { "Felix Krause" => "krausefx@gmail.com" }
+  s.author       = { "Felix Krause" => "krausefx@gmail.com", "Tobias Conradi" => "tobias.conradi@apploft.de", "Mathias Köhnke" => "mathias.koehnke@apploft.de" }
 
-  s.source       = { :git => "https://github.com/toursprung/TSMessages.git", :tag => "#{s.version}"}
+  s.source       = { :git => "https://github.com/apploft/TSMessages.git", :tag => "#{s.version}"}
   
   s.platform     = :ios, '5.0'
 

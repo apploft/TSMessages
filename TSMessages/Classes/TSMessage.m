@@ -181,11 +181,16 @@ __weak static UIViewController *_defaultViewController;
         }
         if (![currentNavigationController isNavigationBarHidden])
         {
-            [currentNavigationController.view insertSubview:currentView
-                                               belowSubview:[currentNavigationController navigationBar]];
-            verticalOffset = [currentNavigationController navigationBar].bounds.size.height;
-            if ([TSMessage iOS7StyleEnabled] || isViewIsUnderStatusBar) {
-                addStatusBarHeightToVerticalOffset();
+            if (self.shouldBeDisplayedAboveNavigationBar) {
+                [currentNavigationController.view insertSubview:currentView
+                                                   aboveSubview:[currentNavigationController navigationBar]];
+            } else {
+                [currentNavigationController.view insertSubview:currentView
+                                                   belowSubview:[currentNavigationController navigationBar]];
+                verticalOffset = [currentNavigationController navigationBar].bounds.size.height;
+                if ([TSMessage iOS7StyleEnabled] || isViewIsUnderStatusBar) {
+                    addStatusBarHeightToVerticalOffset();
+                }
             }
         }
         else

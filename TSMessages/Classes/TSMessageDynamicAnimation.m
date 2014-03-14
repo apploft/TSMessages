@@ -8,6 +8,7 @@
 
 #import "TSMessageDynamicAnimation.h"
 #import "TSMessageView.h"
+#import "TSMessage.h"
 
 #define iOS7Enabled __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
 
@@ -24,6 +25,10 @@ static TSMessageDynamicAnimation *TSMessageDynamicAnimationInstance = nil;
 
 + (void)animateMessageView:(TSMessageView *)view toFrame:(CGRect)targetFrame appearing:(BOOL)isAppearing completion:(void (^)(void))completionBlock {
 #if iOS7Enabled
+    if ([[TSMessage sharedMessage] shouldBeDisplayedAboveNavigationBar]) {
+        [TSMessageView setStatusBarHidden:isAppearing animated:(isAppearing == NO)];
+    }
+    
     // currently only one animation per time is supported
     if (TSMessageDynamicAnimationInstance) {
         [TSMessageDynamicAnimationInstance stopAnimation];

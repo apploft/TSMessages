@@ -76,5 +76,5 @@
 /** Use this method to load a custom design file */
 + (void)addNotificationDesignFromFile:(NSString *)file;
 
-
++ (void)setStatusBarHidden:(BOOL)hidden animated:(BOOL)animated;
 @end

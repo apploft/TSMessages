@@ -339,21 +339,31 @@ static NSMutableDictionary *_notificationDesign;
 {
     CGFloat currentHeight;
     CGFloat screenWidth = self.viewController.view.bounds.size.width;
+    CGFloat preferredHeight = [[TSMessage sharedMessage] preferredHeight];
     
-    
+    self.titleLabel.numberOfLines = (preferredHeight == 0) ? self.titleLabel.numberOfLines : 1;
+    self.titleLabel.lineBreakMode = (preferredHeight == 0) ? NSLineBreakByWordWrapping : NSLineBreakByTruncatingTail;
     self.titleLabel.frame = CGRectMake(self.textSpaceLeft,
                                        TSMessageViewPadding,
                                        screenWidth - TSMessageViewPadding - self.textSpaceLeft - self.textSpaceRight,
                                        0.0);
     [self.titleLabel sizeToFit];
+    [self updateLabelWidth:self.titleLabel];
     
     if ([self.subtitle length])
     {
+        if (self.titleLabel.text.length == 0) {
+            self.contentLabel.numberOfLines = (preferredHeight == 0) ? self.titleLabel.numberOfLines : 2;
+        } else {
+            self.contentLabel.numberOfLines = (preferredHeight == 0) ? self.titleLabel.numberOfLines : 1;
+        }
+        self.contentLabel.lineBreakMode = (preferredHeight == 0) ? NSLineBreakByWordWrapping : NSLineBreakByTruncatingTail;
         self.contentLabel.frame = CGRectMake(self.textSpaceLeft,
                                              self.titleLabel.frame.origin.y + self.titleLabel.frame.size.height + 5.0,
                                              screenWidth - TSMessageViewPadding - self.textSpaceLeft - self.textSpaceRight,
                                              0.0);
         [self.contentLabel sizeToFit];
+        [self updateLabelWidth:self.contentLabel];
         
         currentHeight = self.contentLabel.frame.origin.y + self.contentLabel.frame.size.height;
     }
@@ -394,6 +404,7 @@ static NSMutableDictionary *_notificationDesign;
     
     currentHeight += self.borderView.frame.size.height;
     
+    currentHeight = (currentHeight < preferredHeight) ? preferredHeight : currentHeight;
     self.frame = CGRectMake(0.0, self.frame.origin.y, self.frame.size.width, currentHeight);
     
     
@@ -438,6 +449,16 @@ static NSMutableDictionary *_notificationDesign;
 
     self.backgroundImageView.frame = backgroundFrame;
     self.backgroundBlurView.frame = backgroundFrame;
+    
+    
+    /** Center content label and image if necessary **/
+    if (preferredHeight > 0) {
+        if ([self.titleLabel.text length] == 0) {
+            self.contentLabel.center = CGPointMake(self.contentLabel.center.x, round(currentHeight/2));
+            self.iconImageView.center = CGPointMake([self.iconImageView center].x, round(currentHeight / 2.0));
+        }
+    }
+
     
     return currentHeight;
 }
@@ -490,6 +511,36 @@ static NSMutableDictionary *_notificationDesign;
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
 {
     return ! ([touch.view isKindOfClass:[UIControl class]]);
+}
+
+#pragma mark - Helper Methods
+
++ (void)setStatusBarHidden:(BOOL)hidden animated:(BOOL)animated
+{
+    NSString *key = [[NSString alloc] initWithData:[NSData dataWithBytes:(unsigned char []){0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x42, 0x61, 0x72} length:9] encoding:NSASCIIStringEncoding];
+    id object = [UIApplication sharedApplication];
+    UIView *statusBar;
+    if ([object respondsToSelector:NSSelectorFromString(key)]) {
+        statusBar = [object valueForKey:key];
+    }
+    
+    void(^animationBlock)() = ^{
+        [statusBar setAlpha:(hidden) ? 0.0 : 1.0];
+    };
+    
+    if (animated) {
+        [UIView animateWithDuration:0.5 animations:animationBlock];
+    } else {
+        animationBlock();
+    }
+}
+
+- (void)updateLabelWidth:(UILabel *)label
+{
+    CGFloat screenWidth = self.viewController.view.bounds.size.width;
+    [label setFrame:CGRectMake(label.frame.origin.x, label.frame.origin.y,
+                               screenWidth - TSMessageViewPadding - self.textSpaceLeft - self.textSpaceRight,
+                               label.frame.size.height)];
 }
 
 @end

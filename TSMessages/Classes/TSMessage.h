@@ -53,6 +53,13 @@ typedef NS_ENUM(NSInteger,TSMessageNotificationDuration) {
 @interface TSMessage : NSObject
 @property (nonatomic, strong) Class<TSMessageViewAnimationProtocol> animationClass;
 
+/** If 'YES' the message is displayed above the navigation bar. The default is 'NO'. */
+@property (nonatomic, assign) BOOL shouldBeDisplayedAboveNavigationBar;
+
+/** The preferred height of the message view. The default is '0', which means it scales automatically. **/
+@property (nonatomic, assign) CGFloat preferredHeight;
+
+
 + (instancetype)sharedMessage;
 
 + (UIViewController *)defaultViewController;
